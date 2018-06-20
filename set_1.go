@@ -114,9 +114,15 @@ func hammingDistanceBytes(a, b []byte) int {
 func findRepeatingXORKeySize(cipher []byte) int {
 	score := float64(10000000)
 	var size int
+	var tmpScore float64
 	for keySize := 2; keySize < 40; keySize++ {
-		f, s := cipher[:keySize*4], cipher[keySize*4:keySize*2*4]
-		tmpScore := float64(hammingDistanceBytes(f, s)) / float64(keySize*4)
+		tmpScore = 0
+		iterations := len(cipher) / keySize
+		for i := 0; i < iterations; i++ {
+			f, s := cipher[i*keySize:(keySize*i)+keySize], cipher[keySize+(keySize*i):(keySize*i)+(keySize*2)]
+			tmpScore += float64(hammingDistanceBytes(f, s))
+		}
+		tmpScore = tmpScore / float64(iterations) / float64(keySize)
 		if tmpScore < score {
 			score = tmpScore
 			size = keySize
